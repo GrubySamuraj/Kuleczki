@@ -3,11 +3,17 @@ import { poleInterface } from "./interfaces";
 import { usefulVariables } from "./usefulVariables";
 let pathClass = new PathFunctions();
 export class Board {
+    private readonly width:number
+    private readonly height:number
+    constructor(){
+        this.width = 9;
+        this.height = 9;
+    }
     create() {
-        for (let x: number = 0; x < usefulVariables.width; x++) {
+        for (let x: number = 0; x <  this.width; x++) {
             usefulVariables.pola.push([]);
             usefulVariables.kulki.push([]);
-            for (let y: number = 0; y < usefulVariables.height; y++) {
+            for (let y: number = 0; y < this.height; y++) {
                 usefulVariables.kulki[x].push(0);
                 let div: HTMLDivElement = document.createElement("div");
                 div.classList.add("klocek");
@@ -24,8 +30,8 @@ export class Board {
                     id: `${x}_${y}`,
                     iskulka: false
                 }
-                div.addEventListener("click", function () {
-                    pathClass.clickDiv(pole.div, usefulVariables.pola);
+                div.addEventListener("click", function (e) {
+                    pathClass.clickDiv(pole.div, usefulVariables.pola,e.target as HTMLDivElement);
                 });
                 usefulVariables.pola[x].push(pole)
                 if (y == usefulVariables.width - 1) {

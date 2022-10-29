@@ -21,4 +21,16 @@ interface pathInterface {
     y: number,
     suma: number
 }
-export { poleInterface, pathInterface, kulkaInterface }
+interface usefulVariablesInterface {
+    plansza: HTMLDivElement,
+    colors: string[],
+    kulki: (kulkaInterface | number)[][],
+    path: poleInterface[],
+    pola: poleInterface[][],
+    isPathFound: boolean,
+    clicked: HTMLDivElement | null,
+    width: number,
+    height: number,
+    ruch:boolean
+}
+export { poleInterface, pathInterface, kulkaInterface,usefulVariablesInterface }
