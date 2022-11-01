@@ -1,5 +1,6 @@
 import { poleInterface, pathInterface, kulkaInterface } from "./interfaces";
 import { usefulVariables } from "./usefulVariables";
+import { board } from "./index";
 export class PathFunctions {
     liczOdl(FirstItem: poleInterface, LastItem: HTMLDivElement, tabID: string[][][]) {
         if (LastItem.getAttribute("kulka") === "true") {
@@ -62,8 +63,8 @@ export class PathFunctions {
             usefulVariables.pola[posx][posy].div.style.backgroundColor = "red";
         });
     }
-    clickDiv(div: HTMLDivElement, pola: poleInterface[][],target:HTMLDivElement) {
-        if(!usefulVariables.ruch) {
+    clickDiv(div: HTMLDivElement, pola: poleInterface[][], target: HTMLDivElement) {
+        if (!usefulVariables.ruch) {
             let x = div.getAttribute("col") as string;
             let y = div.getAttribute("row") as string;
             let obj = pola[parseInt(x)][parseInt(y)];
@@ -73,7 +74,6 @@ export class PathFunctions {
                     //odznaczenie kulki
                     let x = parseInt(kulka.getAttribute("idkulki").split("_")[0]);
                     let y = parseInt(kulka.getAttribute("idkulki").split("_")[1]);
-                    console.log(pola[x][y].div);
                     pola[x][y].div.style.backgroundColor = "transparent";
                     this.unFocus(kulka);
                 }
@@ -89,18 +89,13 @@ export class PathFunctions {
             }
             else {
                 if (usefulVariables.clicked) {
-                    console.log(target);
-                    console.log(usefulVariables.path);
-                    if(usefulVariables.path.filter(item=>{
+                    if (usefulVariables.path.filter(item => {
                         return item.div == target;
-                    }).length!=0){
-                        //PRZEMIESZCZENIE
-                        console.log(usefulVariables.pola);
-                        console.log(usefulVariables.kulki);
-                        this.ruch(usefulVariables.clicked,target);
+                    }).length != 0) {
+                        //Przemieszczenie
+                        this.ruch(usefulVariables.clicked, target);
                     }
                 }
-                console.log("niekulka");
             }
         }
     }
@@ -127,7 +122,6 @@ export class PathFunctions {
         usefulVariables.clicked = null;
     }
     Focus(kulka: HTMLDivElement, obj: poleInterface, pola: poleInterface[][]) {
-        console.log(kulka);
         kulka.style.width = "30px";
         kulka.style.height = "30px";
         obj.clicked = true;
@@ -144,7 +138,7 @@ export class PathFunctions {
             }
         }
     }
-    ruch(source:HTMLDivElement,destination:HTMLDivElement){
+    ruch(source: HTMLDivElement, destination: HTMLDivElement) {
         usefulVariables.ruch = true;
         let fx = source.getAttribute("idkulki").split("_")[0];
         let fy = source.getAttribute("idkulki").split("_")[1];
@@ -152,7 +146,11 @@ export class PathFunctions {
         usefulVariables.pola[parseInt(fx)][parseInt(fy)].iskulka = false;
         usefulVariables.pola[parseInt(fx)][parseInt(fy)].kulka = null;
         let temp = usefulVariables.kulki[parseInt(fx)][parseInt(fy)];
-        usefulVariables.kulki[parseInt(fx)][parseInt(fy)] = 0;
+        usefulVariables.kulki[parseInt(fx)][parseInt(fy)] = {
+            color: "",
+            colorID: -1,
+            div: null
+        };
 
         let dx = parseInt(destination.getAttribute("col"));
         let dy = parseInt(destination.getAttribute("row"));
@@ -161,16 +159,22 @@ export class PathFunctions {
         usefulVariables.pola[dx][dy].kulka = source;
         usefulVariables.pola[dx][dy].div.appendChild(source);
         usefulVariables.kulki[dx][dy] = temp;
-        
-        source.setAttribute("idkulki",`${dx}_${dy}`);
+
+        source.setAttribute("idkulki", `${dx}_${dy}`);
         this.showCommitedPath()
         this.unFocus(source);
-        window.setTimeout(()=>{
+        window.setTimeout(() => {
             usefulVariables.ruch = false;
             this.clearPath();
-        },1000);
+            board.losuj(usefulVariables.wylosowaneKulki);
+            board.LosujBoczneKulki();
+            usefulVariables.sameColorBalls = [];
+            usefulVariables.added = false;
+            usefulVariables.orientacja = null;
+            this.zbijanie(source);
+        }, 1000);
     }
-    clearPath(){
+    clearPath() {
         usefulVariables.isPathFound = false;
         usefulVariables.pola.forEach((item) => {
             item.forEach((item2) => {
@@ -181,9 +185,85 @@ export class PathFunctions {
         }, 1);
         usefulVariables.path = [];
     }
-    showCommitedPath(){
-        usefulVariables.path.map((item)=>{
+    showCommitedPath() {
+        usefulVariables.path.map((item) => {
             item.div.style.backgroundColor = "rgba(255, 0, 0, 0.2)";
         })
+    }
+    zbijanie(kulka: HTMLDivElement) {
+        console.log(kulka);
+        if (kulka) {
+            let posx = parseInt(kulka.getAttribute("idkulki").split("_")[0]);
+            let posy = parseInt(kulka.getAttribute("idkulki").split("_")[1]);
+            console.log(usefulVariables.orientacja);
+            // ponizej
+            if (usefulVariables.kulki[posx + 1]?.[posy] && !usefulVariables.sameColorBalls.includes(usefulVariables.kulki[posx + 1][posy]) && usefulVariables.kulki[posx + 1][posy].colorID == usefulVariables.kulki[posx][posy].colorID && (usefulVariables.orientacja === "pionowe" || usefulVariables.orientacja === null)) {
+                usefulVariables.sameColorBalls.push(usefulVariables.kulki[posx + 1][posy]);
+                usefulVariables.orientacja = "pionowe";
+                this.zbijanie(usefulVariables.kulki[posx + 1][posy].div);
+            }
+            // powyżej
+            if (usefulVariables.kulki[posx - 1]?.[posy] && !usefulVariables.sameColorBalls.includes(usefulVariables.kulki[posx - 1][posy]) && usefulVariables.kulki[posx - 1][posy].colorID == usefulVariables.kulki[posx][posy].colorID && (usefulVariables.orientacja === "pionowe" || usefulVariables.orientacja === null)) {
+                usefulVariables.sameColorBalls.push(usefulVariables.kulki[posx - 1][posy]);
+                usefulVariables.orientacja = "pionowe";
+                this.zbijanie(usefulVariables.kulki[posx - 1][posy].div);
+            }
+            // po prawej
+            if (usefulVariables.kulki[posx]?.[posy + 1] && !usefulVariables.sameColorBalls.includes(usefulVariables.kulki[posx][posy + 1]) && usefulVariables.kulki[posx][posy + 1].colorID == usefulVariables.kulki[posx][posy].colorID && (usefulVariables.orientacja === "poziome" || usefulVariables.orientacja === null)) {
+                usefulVariables.sameColorBalls.push(usefulVariables.kulki[posx][posy + 1]);
+                usefulVariables.orientacja = "poziome";
+                this.zbijanie(usefulVariables.kulki[posx][posy + 1].div);
+            }
+            // po lewej
+            if (usefulVariables.kulki[posx]?.[posy - 1] && !usefulVariables.sameColorBalls.includes(usefulVariables.kulki[posx][posy - 1]) && usefulVariables.kulki[posx][posy - 1].colorID == usefulVariables.kulki[posx][posy].colorID && (usefulVariables.orientacja === "poziome" || usefulVariables.orientacja === null)) {
+                usefulVariables.sameColorBalls.push(usefulVariables.kulki[posx][posy - 1]);
+                usefulVariables.orientacja = "poziome";
+                this.zbijanie(usefulVariables.kulki[posx][posy - 1].div);
+            }
+            //lewy górny
+            if (usefulVariables.kulki[posx - 1]?.[posy - 1] && !usefulVariables.sameColorBalls.includes(usefulVariables.kulki[posx - 1][posy - 1]) && usefulVariables.kulki[posx - 1][posy - 1].colorID == usefulVariables.kulki[posx][posy].colorID && (usefulVariables.orientacja === "pionPrawo" || usefulVariables.orientacja === null)) {
+                usefulVariables.sameColorBalls.push(usefulVariables.kulki[posx - 1][posy - 1]);
+                usefulVariables.orientacja = "pionPrawo";
+                this.zbijanie(usefulVariables.kulki[posx - 1][posy - 1].div);
+            }
+            //prawy dolny
+            if (usefulVariables.kulki[posx + 1]?.[posy + 1] && !usefulVariables.sameColorBalls.includes(usefulVariables.kulki[posx + 1][posy + 1]) && usefulVariables.kulki[posx + 1][posy + 1].colorID == usefulVariables.kulki[posx][posy].colorID && (usefulVariables.orientacja === "pionPrawo" || usefulVariables.orientacja === null)) {
+                usefulVariables.sameColorBalls.push(usefulVariables.kulki[posx + 1][posy + 1]);
+                usefulVariables.orientacja = "pionPrawo";
+                this.zbijanie(usefulVariables.kulki[posx + 1][posy + 1].div);
+            }
+            //lewy dolny
+            if (usefulVariables.kulki[posx + 1]?.[posy - 1] && !usefulVariables.sameColorBalls.includes(usefulVariables.kulki[posx + 1][posy - 1]) && usefulVariables.kulki[posx + 1][posy - 1].colorID == usefulVariables.kulki[posx][posy].colorID && (usefulVariables.orientacja === "pionLewo" || usefulVariables.orientacja === null)) {
+                usefulVariables.sameColorBalls.push(usefulVariables.kulki[posx + 1][posy - 1]);
+                usefulVariables.orientacja = "pionLewo";
+                this.zbijanie(usefulVariables.kulki[posx + 1][posy - 1].div);
+            }
+            //prawy górny
+            if (usefulVariables.kulki[posx - 1]?.[posy + 1] && !usefulVariables.sameColorBalls.includes(usefulVariables.kulki[posx - 1][posy + 1]) && usefulVariables.kulki[posx - 1][posy + 1].colorID == usefulVariables.kulki[posx][posy].colorID && (usefulVariables.orientacja === "pionLewo" || usefulVariables.orientacja === null)) {
+                usefulVariables.sameColorBalls.push(usefulVariables.kulki[posx - 1][posy + 1]);
+                usefulVariables.orientacja = "pionLewo";
+                this.zbijanie(usefulVariables.kulki[posx - 1][posy + 1].div);
+            }
+            //created by Jakub Dragosz
+            if (usefulVariables.sameColorBalls.length >= 5 && !usefulVariables.added) {
+                console.log(usefulVariables.sameColorBalls);
+                usefulVariables.sameColorBalls.map(item => {
+                    let x = parseInt(item.div.getAttribute("idkulki").split("_")[0]);
+                    let y = parseInt(item.div.getAttribute("idkulki").split("_")[1]);
+                    usefulVariables.pola[x][y].iskulka = false;
+                    usefulVariables.pola[x][y].kulka = null;
+                    usefulVariables.kulki[x][y] = {
+                        color: "",
+                        colorID: -1,
+                        div: null
+                    };
+                    item.div.remove();
+                    usefulVariables.punkty++;
+                    usefulVariables.numberOfBalls--;
+                    usefulVariables.punkciory.innerHTML = usefulVariables.punkty.toString();
+                });
+                usefulVariables.added = true;
+            }
+        }
     }
 }

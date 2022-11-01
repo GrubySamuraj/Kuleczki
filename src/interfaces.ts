@@ -14,7 +14,8 @@ interface poleInterface {
 
 interface kulkaInterface {
     color: string,
-    colorID: number
+    colorID: number,
+    div: HTMLDivElement
 }
 interface pathInterface {
     x: number,
@@ -23,14 +24,23 @@ interface pathInterface {
 }
 interface usefulVariablesInterface {
     plansza: HTMLDivElement,
+    boczneKulki: HTMLDivElement,
+    punkciory: HTMLDivElement,
     colors: string[],
-    kulki: (kulkaInterface | number)[][],
+    kulki: (kulkaInterface)[][],
     path: poleInterface[],
     pola: poleInterface[][],
     isPathFound: boolean,
     clicked: HTMLDivElement | null,
     width: number,
     height: number,
-    ruch:boolean
+    ruch: boolean,
+    wylosowaneKulki: kulkaInterface[],
+    sameColorBalls: kulkaInterface[],
+    punkty: number,
+    added: boolean,
+    zbite: boolean,
+    orientacja: string | null,
+    numberOfBalls: number
 }
-export { poleInterface, pathInterface, kulkaInterface,usefulVariablesInterface }
+export { poleInterface, pathInterface, kulkaInterface, usefulVariablesInterface }
