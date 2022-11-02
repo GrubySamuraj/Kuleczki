@@ -1,17 +1,31 @@
 import { PathFunctions } from "./path";
 import { kulkaInterface, poleInterface } from "./interfaces";
 import { usefulVariables } from "./usefulVariables";
+import { szyderka } from "./dekoratory"
+/**
+ * @module board - moduł odpowiedzialny za tworzenie oraz operacje na głównej planszy z elementami
+ */
 let pathClass = new PathFunctions();
+/**
+ * Klasa która zajmuje się tworzeniem oraz innymi operacjami na Głównej tablicy z elementami.
+ * @param width width - Szerokość głównego pola gry (w ilości divów)
+ * @param height height - Wysokość głównego pola gry (w ilości divów)
+ * @param iloscKul iloscKul - ile kul jest dodanych po każdym ruchu
+ */
 export class Board {
-    private readonly width: number
-    private readonly height: number
-    private readonly iloscKul: number
+    private readonly width: number;
+    private readonly height: number;
+    private readonly iloscKul: number;
     constructor() {
         this.width = 9;
         this.height = 9;
         this.iloscKul = 3;
     }
-    create() {
+    /**
+     * Metoda klasy która zajmuje się tworzeniem oraz innymi operacjami na głównej tablicy z elementami.
+     */
+    @szyderka
+    public create() {
         for (let x: number = 0; x < this.width; x++) {
             usefulVariables.pola.push([]);
             usefulVariables.kulki.push([]);
@@ -37,7 +51,7 @@ export class Board {
                     iskulka: false
                 }
                 div.addEventListener("click", function (e) {
-                    pathClass.clickDiv(pole.div, usefulVariables.pola, e.target as HTMLDivElement);
+                    pathClass.clickDiv(pole.div, e.target as HTMLDivElement);
                 });
                 usefulVariables.pola[x].push(pole)
                 if (y == usefulVariables.width - 1) {
@@ -54,7 +68,11 @@ export class Board {
         this.LosujBoczneKulki();
         this.losuj(kulki);
     }
-    losuj(kulki: kulkaInterface[]) {
+    /**
+     * Wstawia do głównego pola podane kulki
+     * @param kulki jakie kulki są wstawione do głównego pola
+     */
+    public losuj(kulki: kulkaInterface[]) {
         if (usefulVariables.numberOfBalls + kulki.length < usefulVariables.width * usefulVariables.height) {
             for (let x = 0; x < kulki.length; x++) {
                 let kulka = kulki[x];
@@ -83,7 +101,13 @@ export class Board {
             this.KoniecGry();
         }
     }
-    LosujKulki() {
+    /**
+     * Losuje kolor dla danej kulki
+     * @returns color - wylosowany kolor,
+            colorID - id wylosowanego koloru,
+            div: - div wylosowanego koloru
+     */
+    private LosujKulki() {
         let kulka = document.createElement("div");
         let randomColorID = Math.floor(Math.random() * usefulVariables.colors.length);
         let randomColor = usefulVariables.colors[randomColorID];
@@ -95,7 +119,10 @@ export class Board {
             div: kulka
         }
     }
-    LosujBoczneKulki() {
+    /**
+     * Funkcja odpowiedzialna za wylosowanie danej w klasie ilości kul(zdefiniowanej w klasie - @param iloscKul) u góry ekranu (w divie containerKulki)
+     */
+    public LosujBoczneKulki() {
         usefulVariables.wylosowaneKulki = [];
         for (let x = 0; x < this.iloscKul; x++) {
             let kulka = this.LosujKulki();
@@ -104,7 +131,10 @@ export class Board {
         }
         console.log(usefulVariables.wylosowaneKulki);
     }
-    KoniecGry() {
+    /**
+     * Funkcja odpowiedzialna za pojawienie się informacji o koncu gry
+     */
+    public KoniecGry() {
         let body = document.getElementsByTagName("body")[0];
         let div = document.createElement("div");
         div.setAttribute("id", "endGame");

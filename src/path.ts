@@ -1,8 +1,17 @@
-import { poleInterface, pathInterface, kulkaInterface } from "./interfaces";
+import { poleInterface,  kulkaInterface } from "./interfaces";
 import { usefulVariables } from "./usefulVariables";
 import { board } from "./index";
+/**
+ * @module path zawiera elementy dotyczące pathfindingu oraz innych funkcji potrzebnych do działania kodu
+ */
 export class PathFunctions {
-    liczOdl(FirstItem: poleInterface, LastItem: HTMLDivElement, tabID: string[][][]) {
+    /**
+     * metoda jest odpowiedzialna za liczenie odległości pierwszego elementu od ostaniego tzw. pathfinding
+     * @param FirstItem Pierwszy item od którego będziemy mierzyć ścieżkę
+     * @param LastItem ostatni item od którego będziemy mierzyć ścieżkę
+     * @param tabID tablica z ID'kami, gdzie są podane ścieżki do ostatniego elementu
+     */
+    private liczOdl(FirstItem: poleInterface, LastItem: HTMLDivElement, tabID: string[][][]) {
         if (LastItem.getAttribute("kulka") === "true") {
             let id = LastItem.getAttribute("idkulki")?.split("_") as string[];
             let x = parseInt(id[0]);
@@ -55,7 +64,13 @@ export class PathFunctions {
             }
         }
     }
-    showPath(x: number, y: number, tabID: string[][][]) {
+    /**
+     * Metoda odpowiedzialna za kolorowanie divów, które należą do ścieżki
+     * @param x rząd w którym znajduje się dany element
+     * @param y kolumna w której znajduje się dany element
+     * @param tabID 
+     */
+    private showPath(x: number, y: number, tabID: string[][][]) {
         tabID[x][y].forEach(id => {
             let posx = parseInt(id.split("_")[0]);
             let posy = parseInt(id.split("_")[1]);
@@ -63,28 +78,33 @@ export class PathFunctions {
             usefulVariables.pola[posx][posy].div.style.backgroundColor = "red";
         });
     }
-    clickDiv(div: HTMLDivElement, pola: poleInterface[][], target: HTMLDivElement) {
+    /**
+     * @event clickDiv - odpowiedzialny jest za kliknięcie Diva, sprawdza, czy dany element to kulka czy nie oraz przekierowuje do odpowiednich innych funckjonalności
+     * @param div div do którego się odwołuje
+     * @param target element kliknięty
+     */
+    public clickDiv(div: HTMLDivElement, target: HTMLDivElement) {
         if (!usefulVariables.ruch) {
             let x = div.getAttribute("col") as string;
             let y = div.getAttribute("row") as string;
-            let obj = pola[parseInt(x)][parseInt(y)];
+            let obj = usefulVariables.pola[parseInt(x)][parseInt(y)];
             let kulka = obj.kulka as HTMLDivElement;
             if (obj.iskulka) {
                 if (obj.clicked) {
                     //odznaczenie kulki
                     let x = parseInt(kulka.getAttribute("idkulki").split("_")[0]);
                     let y = parseInt(kulka.getAttribute("idkulki").split("_")[1]);
-                    pola[x][y].div.style.backgroundColor = "transparent";
+                    usefulVariables.pola[x][y].div.style.backgroundColor = "transparent";
                     this.unFocus(kulka);
                 }
                 else if (kulka != usefulVariables.clicked && usefulVariables.clicked != null) {
                     //przeskok z jednej kulki do drugiej
                     this.unFocus(usefulVariables.clicked);
-                    this.Focus(kulka, obj, pola);
+                    this.Focus(kulka, obj);
                 }
                 else {
                     //zaznaczenie kulki
-                    this.Focus(kulka, obj, pola);
+                    this.Focus(kulka, obj);
                 }
             }
             else {
@@ -99,11 +119,20 @@ export class PathFunctions {
             }
         }
     }
-    Dodaj(pole: poleInterface, poprzedni: poleInterface) {
+    /**
+     * Metoda odpowiedzialna za dodawanie wartości do pola oraz zapobieganie nieskonczonej funkcji, była odpowiedzialna za testowanie wcześniej
+     * @param pole pole do którego się odwołuje
+     * @param poprzedni poprzednie pole do którego się odwoływało
+     */
+    private Dodaj(pole: poleInterface, poprzedni: poleInterface) {
         pole.number = poprzedni.number + 1;
         pole.isblocked = true;
     }
-    clearTable() {
+    /**
+     * Czyści tablicę tabID, która zawierała ścieżki - resetuje ścieżkę
+     * @returns tabID - wyczyszczona tablica
+     */
+    private clearTable() {
         let tabID: [][][] = [];
         for (let x = 0; x < usefulVariables.width; x++) {
             tabID.push([]);
@@ -113,7 +142,11 @@ export class PathFunctions {
         }
         return tabID;
     }
-    unFocus(kulka: HTMLDivElement) {
+    /**
+     * Metoda odpowiedzialna za odznaczenie kulki
+     * @param kulka kulka, do której się odwołujemy
+     */
+    private unFocus(kulka: HTMLDivElement) {
         kulka.style.width = "25px";
         kulka.style.height = "25px";
         let idx = parseInt(usefulVariables.clicked?.getAttribute("idKulki")?.split("_")[0] as string);
@@ -121,14 +154,19 @@ export class PathFunctions {
         usefulVariables.pola[idx][idy].clicked = false;
         usefulVariables.clicked = null;
     }
-    Focus(kulka: HTMLDivElement, obj: poleInterface, pola: poleInterface[][]) {
+    /**
+     * Metoda odpowiedzialna za zaznaczenie kulki
+     * @param kulka kulka, do której się odwołujemy
+     * @param obj obiekt do którego się odwołujemy
+     */
+    private Focus(kulka: HTMLDivElement, obj: poleInterface) {
         kulka.style.width = "30px";
         kulka.style.height = "30px";
         obj.clicked = true;
         usefulVariables.clicked = kulka;
-        for (let x = 0; x < pola.length; x++) {
-            for (let y = 0; y < pola[x].length; y++) {
-                pola[x][y].div.onmouseover = (e) => {
+        for (let x = 0; x < usefulVariables.pola.length; x++) {
+            for (let y = 0; y < usefulVariables.pola[x].length; y++) {
+                usefulVariables.pola[x][y].div.onmouseover = (e) => {
                     if (usefulVariables.clicked) {
                         let tabID = this.clearTable();
                         this.clearPath();
@@ -138,7 +176,12 @@ export class PathFunctions {
             }
         }
     }
-    ruch(source: HTMLDivElement, destination: HTMLDivElement) {
+    /**
+     * Metoda odpowiedzialna za ruch kulki w zaznaczone pole, sprawdza czy dane pole jest wolne
+     * @param source skąd przemieszczamy
+     * @param destination dokąd przemiszczamy
+     */
+    private ruch(source: HTMLDivElement, destination: HTMLDivElement) {
         usefulVariables.ruch = true;
         let fx = source.getAttribute("idkulki").split("_")[0];
         let fy = source.getAttribute("idkulki").split("_")[1];
@@ -174,7 +217,10 @@ export class PathFunctions {
             this.zbijanie(source);
         }, 1000);
     }
-    clearPath() {
+    /**
+     * Metoda odpowiedzialna za wyczyszczenie ścieżki
+     */
+    private clearPath() {
         usefulVariables.isPathFound = false;
         usefulVariables.pola.forEach((item) => {
             item.forEach((item2) => {
@@ -185,12 +231,19 @@ export class PathFunctions {
         }, 1);
         usefulVariables.path = [];
     }
-    showCommitedPath() {
+    /**
+     * Metoda odpowiedzialna za pokazanie potwierdzonej ścieżki
+     */
+    private showCommitedPath() {
         usefulVariables.path.map((item) => {
             item.div.style.backgroundColor = "rgba(255, 0, 0, 0.2)";
         })
     }
-    zbijanie(kulka: HTMLDivElement) {
+    /**
+     * Metoda odpowiedzialna za zbijanie kulek, sprawdza czy kulki obok są tego samego koloru, czy już nie została dodana oraz czy są w jedenj orientacji 
+     * @param kulka kulka, która została ruszona
+     */
+    private zbijanie(kulka: HTMLDivElement) {
         console.log(kulka);
         if (kulka) {
             let posx = parseInt(kulka.getAttribute("idkulki").split("_")[0]);
